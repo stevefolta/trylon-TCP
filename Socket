@@ -11,6 +11,15 @@ to: address port: port
 close
 accept
 
+send: message
+	send-chunk: message
+	end-message
+send-chunk: message
+	for item in message
+		send-raw: item string
+end-message
+	send-raw: "\r\n"
+
 
 
 ##### Implementation #####
@@ -25,11 +34,18 @@ c-preamble
 	#include <netdb.h>
 	#include <string.h>
 
-	static verify_socket(obj_ this_)
+	static void verify_socket(obj_ this_)
 	{
 		UsingMethod_(socket_not_open_error)
 		if (Not_(Field_(socket)))
 			Call_(socket_not_open_error, this_);
+	}
+
+	static void check_posix_error(obj_ this_, int value, char* call_name)
+	{
+		UsingMethod_(posix_error_co_)
+		if (value == -1)
+			Call_(posix_error_co_, this_, BuildString_(call_name));
 	}
 
 
@@ -119,6 +135,16 @@ c-fn accept
 	return Call_(new_for_socket_co_, this_, BuildInt_(new_socket));
 
 
+c-fn send-raw: string
+	UsingMethod_(start) UsingMethod_(stopper) UsingMethod_(send_error)
+	char* start = BytePtrValue_(Call_(start, string));
+	char* stopper = BytePtrValue_(Call_(stopper, string));
+	ssize_t bytes_sent;
+	verify_socket(this_);
+	bytes_sent = send(IntValue_(Field_(socket)), start, stopper - start, 0);
+	check_posix_error(this_, bytes_sent, "send");
+
+
 create-for-socket: socket
 	this socket = socket
 
@@ -135,5 +161,7 @@ listen-error
 	error: "Listen error."
 accept-error
 	error: "Accept error."
+posix-error: call-name
+	error: ('Error in "', call-name, '()".')
 
 
