@@ -1,0 +1,17 @@
+trylon tcp-test
+
+main: args
+	listen-socket = nil
+	connection-socket = nil
+	try
+		port = 8080
+		listen-socket = TCP Socket new: port
+		connection-socket = listen-socket accept
+	else
+		send: exception message
+	if connection-socket
+		connection-socket close
+	if listen-socket
+		listen-socket close
+
+
