@@ -56,7 +56,6 @@ c-fn create: address port: port
 	int result;
 	int socketID;
 	UsingMethod_(address_error_co_)
-	UsingMethod_(bind_error) UsingMethod_(connect_error)
 
 	/* Get the address. */
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -96,12 +95,7 @@ c-fn create: address port: port
 	freeaddrinfo(addrResult);
 
 	/* Failed? */
-	if (result != 0) {
-		if (address == nil)
-			Call_(bind_error, this_);
-		else
-			Call_(connect_error, this_);
-		}
+	check_posix_error(this_, result, (address == nil ? "bind" : "connect"));
 
 	/* Succeeded. */
 	Field_(socket) = BuildInt_(socketID);
@@ -118,25 +112,22 @@ destroy
 
 
 c-fn listen: backlog
-	UsingMethod_(listen_error);
 	int result;
 	verify_socket(this_);
 	result = listen(IntValue_(Field_(socket)), IntValue_(backlog));
-	if (result != 0)
-		Call_(listen_error, this_);
+	check_posix_error(this_, result, "listen");
 
 c-fn accept
-	UsingMethod_(accept_error) UsingMethod_(new_for_socket_co_)
+	UsingMethod_(new_for_socket_co_)
 	int new_socket;
 	verify_socket(this_);
 	new_socket = accept(IntValue_(Field_(socket)), NULL, 0);
-	if (new_socket == -1)
-		Call_(accept_error, this_);
+	check_posix_error(this_, new_socket, "accept");
 	return Call_(new_for_socket_co_, this_, BuildInt_(new_socket));
 
 
 c-fn send-raw: string
-	UsingMethod_(start) UsingMethod_(stopper) UsingMethod_(send_error)
+	UsingMethod_(start) UsingMethod_(stopper)
 	char* start = BytePtrValue_(Call_(start, string));
 	char* stopper = BytePtrValue_(Call_(stopper, string));
 	ssize_t bytes_sent;
@@ -153,14 +144,6 @@ address-error: message
 	error: ("Couldn't find address: ", message, ".")
 socket-not-open-error
 	error: "Socket is not open."
-bind-error
-	error: "Bind error."
-connect-error
-	error: "Connect error."
-listen-error
-	error: "Listen error."
-accept-error
-	error: "Accept error."
 posix-error: call-name
 	error: ('Error in "', call-name, '()".')
 
