@@ -1,0 +1,31 @@
+trylon ReceivedBuffer
+
+fields buffer capacity size
+
+default-capacity = 1024
+
+
+create: capacity
+	buffer = BytePtr new: capacity
+	this capacity = capacity
+	size = 0
+
+create
+	create: default-capacity
+
+
+read-from: socket
+	size = socket receive-to: buffer size: capacity
+
+
+is-empty
+	return size == 0
+
+start
+	return buffer
+stopper
+	return buffer + size
+string
+	return String from: buffer to: buffer + size
+
+

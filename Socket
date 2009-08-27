@@ -20,6 +20,11 @@ send-chunk: message
 end-message
 	send-raw: "\r\n"
 
+read-buffer
+	buffer = ReceivedBuffer new
+	buffer read-from: this
+	return buffer
+
 
 
 ##### Implementation #####
@@ -137,6 +142,13 @@ c-fn send-raw: string
 	verify_socket(this_);
 	bytes_sent = send(IntValue_(Field_(socket)), start, stopper - start, 0);
 	check_posix_error(this_, bytes_sent, "send");
+
+
+c-fn receive-to: buffer size: size
+	ssize_t bytes_received =
+		recv(IntValue_(Field_(socket)), BytePtrValue_(buffer), IntValue_(size), 0);
+	check_posix_error(this_, bytes_received, "recv");
+	return BuildInt_(bytes_received);
 
 
 create-for-socket: socket
