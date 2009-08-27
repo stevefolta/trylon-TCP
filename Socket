@@ -148,6 +148,19 @@ address-error: message
 socket-not-open-error
 	error: "Socket is not open."
 posix-error: call-name
-	error: ('Error in "', call-name, '()".')
+	throw PosixError new: call-name
+
+
+class PosixError
+	field call-name
+
+	create: call-name
+		this call-name = call-name
+
+	message
+		string = StringBuilder new
+		for item in ('Error in "', call-name, '()".')
+			string += item string
+		return string
 
 
