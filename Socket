@@ -79,6 +79,7 @@ c-fn create: address port: port
 
 		if (address == nil) {
 			/* This is a listening socket, so bind it. */
+			/* SO_REUSEADDR lets us run the program more than once in a row. */
 			int reuseLocal = 1;
 			setsockopt(socketID, SOL_SOCKET, SO_REUSEADDR, &reuseLocal, sizeof(reuseLocal));
 			result = bind(socketID, addr->ai_addr, addr->ai_addrlen);
@@ -111,15 +112,6 @@ c-fn close
 
 destroy
 	close
-
-
-c-fn reuse-local-addresses: new-value
-	int value = (new_value ? 1 : 0);
-	int result =
-		setsockopt(
-			IntValue_(Field_(socket)), SOL_SOCKET, SO_REUSEADDR,
-			&value, sizeof(value));
-	check_posix_error(this_, result, "setsockopt");
 
 
 c-fn listen: backlog
