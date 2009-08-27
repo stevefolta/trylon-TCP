@@ -20,6 +20,10 @@ send-chunk: message
 end-message
 	send-raw: "\r\n"
 
+lines
+	return LinesReader new: this
+
+
 read-buffer
 	buffer = ReceivedBuffer new
 	buffer read-from: this

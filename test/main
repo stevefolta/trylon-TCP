@@ -23,9 +23,13 @@ main: args
 dialog-on: socket
 	socket send: "Hello!"
 
-	# Echo a buffer.
-	buffer = socket read-buffer
-	send: buffer string
+	# Echo lines.
+	lines = socket lines
+	loop
+		line = lines next
+		if line == nil
+			break
+		send: line
 
 	socket close
 

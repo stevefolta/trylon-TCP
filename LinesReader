@@ -1,0 +1,66 @@
+trylon LinesReader
+
+fields socket
+field pending-buffer remainder
+
+
+create: socket
+	this socket = socket
+
+
+next
+	# If there's a already a pending-buffer, see if it's got a string.
+	if pending-buffer
+		line-end-index = remainder index-of-string: "\r\n"
+		if line-end-index >= 0
+			result = remainder substr: 0 length: line-end-index
+			remainder = remainder substr: line-end-index + 2
+			return result
+
+	# Read buffers until we find the end of the line.
+	buffers = List new
+	last-buffer = nil
+	contents = nil
+	line-end-index = -1
+	loop
+		last-buffer = socket read-buffer
+		contents = last-buffer string
+		line-end-index = contents index-of-string: "\r\n"
+		if line-end-index > 0
+			break
+		else if last-buffer is-empty
+			# Reached the end with no EOL.
+			if pending-buffer == nil && buffers is-empty
+				# We've returned the last line.
+				return nil
+			break
+
+		buffers append: last-buffer
+	
+	# Assemble the result.
+	result = nil
+	if pending-buffer || !buffers is-empty
+		result = StringBuilder new
+		if pending-buffer
+			result += remainder
+		for buffer in buffers
+			result += buffer string
+		if line-end-index > 0
+			result += contents substr: 0 length: line-end-index
+		result = result string
+	else
+		result = contents substr: 0 length: line-end-index
+	
+	# Get ready for next time.
+	if line-end-index < 0
+		remainder = contents
+	else
+		remainder = contents substr: line-end-index + 2
+	if remainder is-empty
+		pending-buffer = nil
+	else
+		pending-buffer = last-buffer
+
+	return result
+
+
