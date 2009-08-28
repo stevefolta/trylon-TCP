@@ -26,7 +26,7 @@ next
 		last-buffer = socket read-buffer
 		contents = last-buffer string
 		line-end-index = contents index-of-string: "\r\n"
-		if line-end-index > 0
+		if line-end-index >= 0
 			break
 		else if last-buffer is-empty
 			# Reached the end with no EOL.
