@@ -1,6 +1,14 @@
 trylon tcp-test
 
 main: args
+	test-type = 'dialog'
+	for arg in args
+		switch arg
+			"http"
+				test-type = 'http'
+			"dialog"
+				test-type = 'dialog'
+
 	listen-socket = nil
 	connection-socket = nil
 	try
@@ -8,7 +16,11 @@ main: args
 		listen-socket = TCP Socket new: port
 		connection-socket = listen-socket accept
 
-		dialog-on: connection-socket
+		switch test-type
+			'dialog'
+				dialog-on: connection-socket
+			'http'
+				http-dialog-on: connection-socket
 
 	else
 		send: exception message
@@ -30,6 +42,69 @@ dialog-on: socket
 		if line == nil
 			break
 		send: line
+
+	socket close
+
+
+http-dialog-on: socket
+	lines = socket lines
+	
+	# Parse the request line.
+	request-line = lines next
+	words = Trylon WordsLexer new: request-line
+	method = words next
+	uri = words next
+	http-version = words next
+
+	# Read the headers.
+	headers = Dictionary new
+	last-header-name = nil
+	loop
+		line = lines next
+		if line is-empty
+			break
+
+		if line starts-with: " " || line starts-with: "\t"
+			# Extending the last header.
+			if last-header-name == nil
+				# There was no last header!  Ignore the error.
+				continue
+			headers[last-header-name] += " " + line trimmed
+		else
+			words = Trylon WordsLexer new: line
+			name = words next
+			value = words remainder trimmed
+			if !name ends-with: ":"
+				# Bad header.
+				continue
+			name = name substr: 0 length: name length - 1
+			headers[name] = value
+			last-header-name = name
+
+	# Send the reply.
+	if method != "GET" && method != "HEAD"
+		socket send: "HTTP/1.1 501 Not Implemented"
+		socket send: ""
+	
+	# Reply headers.
+	# We skip "Date:" for now...
+	socket send: "HTTP/1.1 200 OK"
+	socket send: "Connection: close"
+	socket send: "Content-Type: text/html; charset=UTF-8"
+	socket send: ""
+
+	# Reply body.
+	if method == "GET"
+		socket send: "<html>"
+		socket send: "<head>"
+		socket send: "<title> Test Page </title>"
+		socket send: "</head>"
+		socket send: ""
+		socket send: "<body>"
+		socket send: "<h2> Test Page </h2>"
+		socket send: "<p> Welcome to the test page! </p>"
+		socket send: "</body>"
+		socket send: "</html>"
 
 	socket close
 
