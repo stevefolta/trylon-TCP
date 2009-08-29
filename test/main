@@ -95,16 +95,17 @@ http-dialog-on: socket
 
 	# Reply body.
 	if method == "GET"
-		socket send: "<html>"
-		socket send: "<head>"
-		socket send: "<title> Test Page </title>"
-		socket send: "</head>"
-		socket send: ""
-		socket send: "<body>"
-		socket send: "<h2> Test Page </h2>"
-		socket send: "<p> Welcome to the test page! </p>"
-		socket send: "</body>"
-		socket send: "</html>"
+		socket send: ¶
+			<html>
+			<head>
+			<title> Test Page </title>
+			</head>
+			
+			<body>
+			<h2> Test Page </h2>
+			<p> Welcome to the test page! </p>
+			</body>
+			</html>
 
 	socket close
 
