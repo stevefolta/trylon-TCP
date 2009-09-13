@@ -12,7 +12,7 @@ next
 	# If there's a already a pending-buffer, see if it's got a string.
 	if pending-buffer
 		line-end-index = remainder index-of-string: "\r\n"
-		if line-end-index >= 0
+		if line-end-index
 			result = remainder substr: 0 length: line-end-index
 			remainder = remainder substr: line-end-index + 2
 			return result
@@ -26,7 +26,7 @@ next
 		last-buffer = socket read-buffer
 		contents = last-buffer string
 		line-end-index = contents index-of-string: "\r\n"
-		if line-end-index >= 0
+		if line-end-index
 			break
 		else if last-buffer is-empty
 			# Reached the end with no EOL.
