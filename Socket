@@ -30,6 +30,11 @@ read-buffer
 	return buffer
 
 
+# As an InputStream:
+
+read-buffer: buffer length: length
+	return receive-to: buffer size: length
+
 
 ##### Implementation #####
 
