@@ -64,3 +64,21 @@ next
 	return result
 
 
+iterator
+	return Iterator new: this
+
+class Iterator
+	superclass Standard Iterator
+	fields reader cur-line
+
+	create: reader
+		this reader = reader
+		cur-line = reader next
+
+	is-done
+		return cur-line == nil
+	current-item
+		return cur-line
+	go-forward
+		cur-line = reader next
+
