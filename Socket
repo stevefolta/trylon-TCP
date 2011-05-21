@@ -179,9 +179,8 @@ class PosixError
 		this call-name = call-name
 
 	message
-		string = StringBuilder new
-		for item in ('Error in "', call-name, '()".')
-			string += item string
-		return string
+		return 	--
+			"Error ", Posix errno, " (", (Posix strerror: Posix errno), 	--
+			') in "', call-name, '()".'
 
 
